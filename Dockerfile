@@ -1,8 +1,8 @@
-# 1.0.5
-# docker build -t taskbot:1.0.5 .
-# docker run -d --name taskbot --restart unless-stopped --env-file .env -e TZ=Asia/Bangkok taskbot:1.0.5
+# 1.1.3
+# docker build -t taskbot:1.1.3 .
+# docker run -d --name taskbot --restart unless-stopped --env-file .env -e TZ=Asia/Bangkok taskbot:1.1.3
 
-# docker build --no-cache -t taskbot:1.0.5 . && docker tag taskbot:1.0.5 199.168.50.160:5000/taskbot:1.0.5 && docker push 199.168.50.160:5000/taskbot:1.0.5
+# docker build --no-cache -t taskbot:1.1.3 . && docker tag taskbot:1.1.3 199.168.50.160:5000/taskbot:1.1.3 && docker push 199.168.50.160:5000/taskbot:1.1.3
 
 # Dockerfile
 FROM node:20-alpine
