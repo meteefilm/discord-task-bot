@@ -107,10 +107,6 @@ function isHost(round, userId) {
     return round.hostId && round.hostId === userId;
 }
 
-function formatMention(id) {
-    return `<@${id}>`;
-}
-
 function pickTopClosest(guesses, target, topN) {
     // guesses: [{userId, value}]
     const sorted = [...guesses].sort((a, b) => {
@@ -141,7 +137,7 @@ const G3_QUESTIONS = [
     { id: 5, q: 'ถ้าได้หยุดงานแบบไม่แจ้งล่วงหน้า 1 วัน จะทำอะไร?', a: 'นอนยาว', b: 'เคลียร์ชีวิต', c: 'ออกไปเที่ยว', d: 'อยู่เฉย ๆ ไม่ทำอะไร' },
     { id: 6, q: 'ถ้าต้องทำงานถึงดึก สิ่งที่ช่วยพยุงชีวิตคือ?', a: 'กาแฟ', b: 'เพลง', c: 'ของกิน', d: 'แรงใจ' },
     { id: 7, q: 'ของขวัญแบบไหน “ไม่อยากได้แต่ต้องยิ้มรับ”?', a: 'แก้ว', b: 'เสื้อไซส์ไม่พอดี', c: 'ของตกแต่งแปลก ๆ', d: 'ของที่ไม่รู้จะใช้ยังไง' },
-    { id: 8, q: 'ถ้าวันหยุดทั้งวัน สิ่งที่อยากทำที่สุด?', a: 'นอน', b: 'ดูหนัง/ซีรีส์', c: 'เล่นเกม', d: 'ออกไปข้างนอก' },
+    { id: 8, q: 'ถ้ามีเวลาเหลือ 1 ชั่วโมงแบบไม่ต้องรับผิดชอบอะไรเลย คุณจะเลือก?', a: 'นอนพัก / งีบ', b: 'เล่นมือถือเรื่อยเปื่อย', c: 'ดูคลิป / ซีรีส์สั้น ๆ', d: 'ออกไปเดินเล่น' },
     { id: 9, q: 'ถ้าต้องเลือกกินอย่างเดียว 1 เดือน?', a: 'หมูกระทะ', b: 'ก๋วยเตี๋ยว', c: 'ข้าวกล่อง', d: 'ฟาสต์ฟู้ด' },
     { id: 10, q: 'ถ้าเพื่อนพิมพ์มาว่า “เดี๋ยวเล่าให้ฟัง” แต่หายไปทั้งวัน สิ่งที่คิดคือ?', a: 'ลืม', b: 'ยังไม่อยากเล่า', c: 'เรื่องใหญ่', d: 'ช่างมัน เดี๋ยวก็รู้' },
     { id: 11, q: 'เวลาว่าง ๆ คุณชอบไปที่ไหนมากที่สุด?', a: 'คาเฟ่ / ร้านกาแฟ', b: 'ห้าง / ที่เดินเล่น', c: 'อยู่บ้าน', d: 'ที่ธรรมชาติ / ต่างจังหวัด' },
@@ -149,6 +145,13 @@ const G3_QUESTIONS = [
     { id: 13, q: 'ประเทศที่อยากไปมากที่สุดในปีนี้?', a: 'ญี่ปุ่น', b: 'เกาหลี', c: 'ยุโรป', d: 'เที่ยวในประเทศก็พอ' },
     { id: 14, q: 'สิ่งที่อยาก “เลิกทำ” มากที่สุดในปีหน้า?', a: 'นอนดึก', b: 'ใช้เงินฟุ่มเฟือย', c: 'ผัดวันประกันพรุ่ง', d: 'คิดมาก' },
     { id: 15, q: 'สิ่งแรกที่คุณทำทันทีเมื่อหยิบโทรศัพท์ขึ้นมา คือ?', a: 'เช็กแชต', b: 'ไถโซเชียล', c: 'ดูเวลา', d: 'เปิดดูแจ้งเตือน' },
+    { id: 16, q: 'ถ้าเพื่อนโทรมาตอนดึกมาก สิ่งแรกที่คิดคือ?', a: 'เรื่องฉุกเฉิน', b: 'เมาแน่นอน', c: 'มีดราม่า', d: 'ไม่รับก่อน พรุ่งนี้ค่อยว่ากัน' },
+    { id: 17, q: 'ชอบศิลปินแนวไหนมากที่สุด?', a: 'T-POP', b: 'J-POP', c: 'K-POP', d: 'Poppy poppy pop poppy pop' },
+    { id: 18, q: 'ชอบอะไรในนี้มากกว่ากัน?', a: 'ภูเขา', b: 'ทะเล', c: 'บ้าน', d: 'หิมะ' },
+    { id: 19, q: 'สิ่งแรกที่ทำเมื่อถึงที่ทำงานคือ?', a: 'กินข้าว', b: 'ชงกาแฟ', c: 'นอนต่อ', d: 'เตรียมงาน' },
+    { id: 20, q: 'สัตว์เลี้ยงที่ชอบ?', a: 'สุนัข', b: 'แมว', c: 'เต่า / นก / อื่น ๆ', d: 'ไม่ชอบสัตว์เลี้ยง' },
+
+
 ];
 
 function getG3Round(storageId) {
@@ -190,12 +193,6 @@ function choiceText(q, choice) {
     if (c === 'D') return q.d;
     return '';
 }
-
-function isHost(round, userId) {
-    return round.hostId && round.hostId === userId;
-}
-
-
 
 // ---------- commands ----------
 
@@ -1136,7 +1133,7 @@ client.on('interactionCreate', async (itx) => {
             await itx.reply({ content: 'คำสั่ง g2 ไม่รู้จัก', flags: MessageFlags.Ephemeral });
             return;
         }
-        
+
         // -------------------- /g3 --------------------
         if (itx.commandName === 'g3') {
             const sub = itx.options.getSubcommand();
@@ -1147,7 +1144,7 @@ client.on('interactionCreate', async (itx) => {
             if (sub === 'host') {
                 await itx.deferReply({ flags: MessageFlags.Ephemeral });
                 round.hostId = itx.user.id;
-                await itx.editReply(`ตั้ง host เรียบร้อย: ${formatMention(round.hostId)}`);
+                await itx.editReply(`ตั้ง host เรียบร้อย: ${formatMention(round.hostId)} (host เป็นกรรมการ ไม่ร่วมแข่ง)`);
                 return;
             }
 
@@ -1161,13 +1158,11 @@ client.on('interactionCreate', async (itx) => {
                 await itx.deferReply({ flags: MessageFlags.Ephemeral });
                 if (!isHost(round, itx.user.id)) return await itx.editReply('คำสั่งนี้ให้ host เท่านั้น');
 
-                // ถ้ามี alive (จาก nextround) ให้เล่นเฉพาะคนรอด
                 round.roundNo += 1;
                 round.active = true;
                 round.closed = false;
                 round.answers = new Map();
                 round.survivors = [];
-
                 round.currentQ = randomPickQuestion(round);
 
                 await itx.editReply(`เริ่มรอบ G3 #${round.roundNo} แล้ว ✅`);
@@ -1176,14 +1171,15 @@ client.on('interactionCreate', async (itx) => {
                     const q = round.currentQ;
                     const aliveText = (round.alive && round.alive.size > 0)
                         ? `\nผู้เล่นที่ยังอยู่: ${[...round.alive].map(formatMention).join(', ')}`
-                        : '';
+                        : '\n(รอบแรก: ใครตอบ = เข้าร่วม)';
 
                     await itx.channel.send(
                         `🧠 **G3 รอบ #${round.roundNo}**: อ่านใจ host!\n` +
                         `**Q${q.id}. ${q.q}**\n` +
                         `A) ${q.a}\nB) ${q.b}\nC) ${q.c}\nD) ${q.d}\n\n` +
                         `ตอบด้วย \`/g3 answer choice:A|B|C|D\`\n` +
-                        `⛔ ส่งแล้วแก้ไม่ได้ (host ก็ตอบพร้อมกัน)\n` +
+                        `⛔ ส่งแล้วแก้ไม่ได้ (host ตอบพร้อมกัน)\n` +
+                        `ℹ️ host เป็นกรรมการ ไม่ร่วมแข่ง\n` +
                         aliveText
                     );
                 }
@@ -1197,8 +1193,8 @@ client.on('interactionCreate', async (itx) => {
                 if (!round.active || round.closed) return await itx.editReply('ตอนนี้ยังไม่เปิดรับคำตอบ (หรือปิดแล้ว)');
                 if (!round.currentQ) return await itx.editReply('ยังไม่มีคำถามในรอบนี้ ให้ host ใช้ `/g3 start`');
 
-                // ถ้ามี alive ให้เฉพาะคนรอดตอบได้
-                if (round.alive && round.alive.size > 0 && !round.alive.has(itx.user.id)) {
+                // ✅ alive บล็อคเฉพาะ "ผู้เล่น" (ยกเว้น host ตอบได้เสมอ)
+                if (!isHost(round, itx.user.id) && round.alive && round.alive.size > 0 && !round.alive.has(itx.user.id)) {
                     return await itx.editReply('คุณตกรอบไปแล้ว รอบนี้เล่นไม่ได้ 😅');
                 }
 
@@ -1227,13 +1223,14 @@ client.on('interactionCreate', async (itx) => {
                 return;
             }
 
-            // /g3 result (host only) => survivors = same as host; if none => everyone survives
+            // /g3 result (host only)
             if (sub === 'result') {
                 await itx.deferReply(); // public
                 if (!isHost(round, itx.user.id)) return await itx.editReply('คำสั่งนี้ให้ host เท่านั้น');
                 if (!round.active) return await itx.editReply('ยังไม่เริ่มรอบ');
                 if (!round.currentQ) return await itx.editReply('ยังไม่มีคำถาม');
 
+                // ปิดรับอัตโนมัติ
                 round.closed = true;
 
                 const q = round.currentQ;
@@ -1243,48 +1240,53 @@ client.on('interactionCreate', async (itx) => {
                     return await itx.editReply(`host ยังไม่ตอบ! ให้ ${formatMention(round.hostId)} ใช้ \`/g3 answer\` ก่อน`);
                 }
 
-                const allPlayers = [...round.answers.keys()]; // คนที่ตอบในรอบนี้
+                // ✅ ผู้เล่น = คนที่ตอบ (ไม่รวม host)
+                const allPlayers = [...round.answers.keys()].filter(uid => uid !== round.hostId);
+
                 if (!allPlayers.length) {
                     round.active = false;
-                    return await itx.editReply('ไม่มีใครส่งคำตอบเลย');
+                    return await itx.editReply('มีแต่ host ตอบคนเดียว ยังไม่มีผู้เล่นคนอื่นส่งคำตอบ');
                 }
 
-                // คนรอด = ตอบเหมือน host
+                // ✅ คนรอด = ตอบเหมือน host
                 let survivors = allPlayers.filter(uid => round.answers.get(uid) === hostChoice);
 
-                // ถ้าไม่มีใครเหมือน host => ทุกคนรอด
+                // ✅ ถ้าไม่มีใครเหมือน host => ทุกคนรอด (กันเกมพัง)
                 const noMatch = survivors.length === 0;
                 if (noMatch) survivors = allPlayers.slice();
 
                 round.survivors = survivors;
 
-                // ถ้าเหลือคนเดียว = ชนะแล้ว
-                const winnerText = survivors.length === 1 ? `\n🏆 ผู้ชนะคือ ${formatMention(survivors[0])} !!!` : '';
-
-                // ทำสรุปคำตอบ (สั้น ๆ)
-                const lines = allPlayers.map(uid => {
+                // ✅ สรุปคำตอบ: แสดงผู้เล่น + แสดง host แยก
+                const linesPlayers = allPlayers.map(uid => {
                     const c = round.answers.get(uid);
                     const ok = (c === hostChoice) ? '✅' : '❌';
                     return `- ${formatMention(uid)}: **${c}** ${ok}`;
                 }).join('\n');
 
+                const winnerText = survivors.length === 1
+                    ? `\n🏆 ผู้ชนะคือ ${formatMention(survivors[0])} !!!`
+                    : '';
+
                 const msg =
                     `🧠 **G3 Result รอบ #${round.roundNo}**\n` +
                     `**Q${q.id}. ${q.q}**\n` +
                     `Host = ${formatMention(round.hostId)} ตอบ: **${hostChoice}** (${choiceText(q, hostChoice)})\n` +
+                    `ℹ️ host เป็นกรรมการ ไม่ร่วมแข่ง\n` +
                     (noMatch ? `⚠️ ไม่มีใครตอบตรง host เลย → รอบนี้ **ทุกคนรอด**\n` : '') +
-                    `\n📋 สรุปคำตอบ:\n${lines}\n` +
+                    `\n📋 สรุปคำตอบ:\n` +
+                    `- ${formatMention(round.hostId)}: **${hostChoice}** ✅ (Host)\n` +
+                    `${linesPlayers}\n` +
                     `\n✅ ผู้รอด (${survivors.length}): ${survivors.map(formatMention).join(', ')}` +
                     winnerText +
                     `\n\n➡️ host ใช้ \`/g3 nextround\` เพื่อเอาผู้รอดไปต่อ`;
 
                 round.active = false;
-
                 await itx.editReply(msg);
                 return;
             }
 
-            // /g3 nextround (host only): alive = survivors
+            // /g3 nextround (host only)
             if (sub === 'nextround') {
                 await itx.deferReply({ flags: MessageFlags.Ephemeral });
                 if (!isHost(round, itx.user.id)) return await itx.editReply('คำสั่งนี้ให้ host เท่านั้น');
@@ -1293,7 +1295,10 @@ client.on('interactionCreate', async (itx) => {
                     return await itx.editReply('ยังไม่มีผู้รอดจากรอบก่อน ใช้ `/g3 result` ก่อน');
                 }
 
+                // ✅ alive = ผู้เล่นที่รอดเท่านั้น (ไม่ใส่ host)
                 round.alive = new Set(round.survivors);
+
+                // reset state for next round
                 round.survivors = [];
                 round.answers = new Map();
                 round.closed = false;
@@ -1325,8 +1330,6 @@ client.on('interactionCreate', async (itx) => {
             await itx.reply({ content: 'คำสั่ง g3 ไม่รู้จัก', flags: MessageFlags.Ephemeral });
             return;
         }
-
-
 
     } catch (err) {
         console.error('task/gift handler error:', err);
