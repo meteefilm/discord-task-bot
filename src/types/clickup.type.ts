@@ -54,4 +54,15 @@ export interface ClickUpWebhookPayload {
     history_items?: Array<{
         task_id?: string;
     }>;
+
+    payload?: {
+        id?: string;
+        name?: string;
+        priority?: string | number | null;
+        subcategory?: string;
+        lists?: Array<{
+            list_id?: string;
+            type?: string;
+        }>;
+    };
 }
