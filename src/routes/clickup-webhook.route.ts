@@ -18,6 +18,7 @@ import {
 } from "../utils/due-date.util.js";
 
 import { formatDateTimeTH } from "../utils/date.util.js";
+import { formatAssignees } from "../services/task-summary.service.js";
 
 const router = Router();
 
@@ -160,7 +161,7 @@ router.post("/webhook", async (req, res) => {
                     reason: `No Discord link for list ${listId}`,
                 });
             }
-
+            const assignees = formatAssignees(task);
             const message = [
                 "🆕 **New ClickUp Task**",
                 "",
@@ -168,7 +169,8 @@ router.post("/webhook", async (req, res) => {
                 `Status: ${task.status?.status || "-"}`,
                 `Priority: ${task.priority?.priority || "-"}`,
                 `Due: ${formatDateTimeTH(dueDate)}`,
-                task.url || "",
+                `Assignees: ${assignees}`,
+                `<${task.url}>` || "",
             ]
                 .filter(Boolean)
                 .join("\n");

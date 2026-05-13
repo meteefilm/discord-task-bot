@@ -26,7 +26,7 @@ export function buildTaskSummaryMessage(params: {
         return [
             `${index + 1}. **${task.name}**`,
             `   Status: ${status} | Priority: ${priority} | Assignee: ${assignees} | Due: ${due}`,
-            task.url ? `   ${task.url}` : "",
+            task.url ? `   <${task.url}>` : "",
         ]
             .filter(Boolean)
             .join("\n");
@@ -42,7 +42,7 @@ export function buildTaskSummaryMessage(params: {
     )}${more}`;
 }
 
-function formatAssignees(task: ClickUpTask): string {
+export function formatAssignees(task: ClickUpTask): string {
     if (!task.assignees || task.assignees.length === 0) {
         return "-";
     }
