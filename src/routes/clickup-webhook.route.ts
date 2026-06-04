@@ -171,6 +171,8 @@ router.post("/webhook", async (req, res) => {
                 `Due: ${formatDateTimeTH(dueDate)}`,
                 `Assignees: ${assignees}`,
                 `<${task.url}>` || "",
+                "",
+                "<!-- SG_TASK_NOTIFY -->",
             ]
                 .filter(Boolean)
                 .join("\n");

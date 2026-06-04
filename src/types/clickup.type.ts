@@ -66,3 +66,9 @@ export interface ClickUpWebhookPayload {
         }>;
     };
 }
+
+export interface ClickUpUserOption {
+    id: string;
+    name: string;
+    email?: string;
+}

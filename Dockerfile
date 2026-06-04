@@ -1,7 +1,7 @@
-# 2.0.0
-# docker build -t taskbot:2.0.0 .
-# docker run -d --name taskbot --restart unless-stopped --env-file .env -e TZ=Asia/Bangkok taskbot:2.0.0
-# docker build --no-cache -t taskbot:2.0.0 . && docker tag taskbot:2.0.0 199.168.50.160:5000/taskbot:2.0.0 && docker push 199.168.50.160:5000/taskbot:2.0.0
+# 2.0.4
+# docker build -t taskbot:2.0.4 .
+# docker run -d --name taskbot --restart unless-stopped --env-file .env -e TZ=Asia/Bangkok taskbot:2.0.4
+# docker build --no-cache -t taskbot:2.0.4 . && docker tag taskbot:2.0.4 199.168.50.160:5000/taskbot:2.0.4 && docker push 199.168.50.160:5000/taskbot:2.0.4
 
 #
 # Dockerfile

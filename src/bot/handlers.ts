@@ -1,5 +1,6 @@
 import {
     MessageFlags,
+    PermissionFlagsBits,
     type ChatInputCommandInteraction,
     type Client,
 } from "discord.js";
@@ -16,10 +17,19 @@ import {
     getClickUpListsByFolderOption,
     getTasksByListId,
     resolveClickUpListName,
+    getClickUpUsers,
+    getClickUpUserById,
 } from "../services/clickup.service.js";
+
+import {
+    getUserMappings,
+    removeUserMappingByClickUpId,
+    upsertUserMapping,
+} from "../services/user-map.service.js";
 
 import { buildTaskSummaryMessage } from "../services/task-summary.service.js";
 import { sendMessageToProjectLink } from "../services/discord-notify.service.js";
+import { runCleanupBotMessages } from "../jobs/cleanup-bot-messages.job.js";
 
 function getThreadId(itx: ChatInputCommandInteraction): string | undefined {
     return itx.channel?.isThread?.() ? itx.channelId : undefined;
@@ -101,6 +111,76 @@ export function registerInteractionHandlers(client: Client): void {
                         .map((l) => ({
                             name: l.clickupName.slice(0, 100),
                             value: l.clickupId,
+                        }));
+
+                    await itx.respond(options);
+                    return;
+                }
+
+                // ===== map-user: clickup user autocomplete =====
+                if (sub === "map-user" && focused.name === "clickup_user") {
+                    const q = String(focused.value || "").toLowerCase();
+
+                    const users = await getClickUpUsers();
+
+                    const options = users
+                        .filter((user) =>
+                            `${user.name} ${user.email ?? ""}`.toLowerCase().includes(q),
+                        )
+                        .slice(0, 25)
+                        .map((user) => ({
+                            name: `${user.name}${user.email ? ` (${user.email})` : ""}`.slice(0, 100),
+                            value: user.id,
+                        }));
+
+                    await itx.respond(options);
+                    return;
+                }
+
+                // ===== map-user: discord user autocomplete =====
+                if (sub === "map-user" && focused.name === "discord_user") {
+                    const q = String(focused.value || "").toLowerCase();
+
+                    if (!itx.guild) {
+                        await itx.respond([]);
+                        return;
+                    }
+
+                    const members = await itx.guild.members.fetch();
+
+                    const options = [...members.values()]
+                        .filter((member) => !member.user.bot)
+                        .filter((member) =>
+                            `${member.displayName} ${member.user.username}`
+                                .toLowerCase()
+                                .includes(q),
+                        )
+                        .slice(0, 25)
+                        .map((member) => ({
+                            name: `${member.displayName} (@${member.user.username})`.slice(0, 100),
+                            value: member.user.id,
+                        }));
+
+                    await itx.respond(options);
+                    return;
+                }
+
+                // ===== unmap-user autocomplete =====
+                if (sub === "unmap-user" && focused.name === "clickup_user") {
+                    const q = String(focused.value || "").toLowerCase();
+
+                    const mappings = await getUserMappings();
+
+                    const options = mappings
+                        .filter((mapping) =>
+                            `${mapping.clickupName} ${mapping.discordName}`
+                                .toLowerCase()
+                                .includes(q),
+                        )
+                        .slice(0, 25)
+                        .map((mapping) => ({
+                            name: `${mapping.clickupName} → ${mapping.discordName}`.slice(0, 100),
+                            value: mapping.clickupUserId,
                         }));
 
                     await itx.respond(options);
@@ -233,6 +313,15 @@ export function registerInteractionHandlers(client: Client): void {
                     tasks,
                 });
 
+                if (!msg) {
+                    await itx.deleteReply().catch(() => null);
+                    await itx.followUp({
+                        content: "ไม่มี task ที่ค้างอยู่ครับ",
+                        flags: MessageFlags.Ephemeral,
+                    });
+                    return;
+                }
+
                 const chunks = splitDiscordMessage(msg);
 
                 await itx.editReply(chunks[0]);
@@ -243,6 +332,122 @@ export function registerInteractionHandlers(client: Client): void {
 
                 return;
             }
+
+            // ===== cleanup =====
+            if (sub === "cleanup") {
+                await itx.deferReply({ flags: MessageFlags.Ephemeral });
+
+                if (!itx.memberPermissions?.has(PermissionFlagsBits.ManageMessages)) {
+                    await itx.editReply("ต้องมี permission Manage Messages ก่อนใช้งานคำสั่งนี้");
+                    return;
+                }
+
+                const scope = itx.options.getString("scope") || "current";
+                const mode = itx.options.getString("mode") || "old-markers";
+                const targetIds =
+                    scope === "all" ? undefined : [getThreadId(itx) || itx.channelId];
+
+                const result = await runCleanupBotMessages(client, {
+                    deleteAllBotMessages: mode === "all-bot-messages",
+                    deleteAllOldMarkers: mode === "old-markers",
+                    targetIds,
+                });
+
+                await itx.editReply(
+                    [
+                        "Cleanup finished",
+                        `Scope: ${scope}`,
+                        `Mode: ${mode}`,
+                        `Targets: ${result.targets}`,
+                        `Scanned: ${result.scanned}`,
+                        `Matched: ${result.matched}`,
+                        `Deleted: ${result.deleted}`,
+                    ].join("\n"),
+                );
+
+                return;
+            }
+
+            // ===== map-user =====
+            if (sub === "map-user") {
+                await itx.deferReply({ flags: MessageFlags.Ephemeral });
+
+                const clickupUserId = itx.options.getString("clickup_user", true);
+                const discordUserId = itx.options.getString("discord_user", true);
+
+                const clickupUser = await getClickUpUserById(clickupUserId);
+
+                if (!clickupUser) {
+                    await itx.editReply("❌ ไม่พบ ClickUp user นี้");
+                    return;
+                }
+
+                const discordMember = await itx.guild?.members
+                    .fetch(discordUserId)
+                    .catch(() => null);
+
+                if (!discordMember) {
+                    await itx.editReply("❌ ไม่พบ Discord user นี้ใน server");
+                    return;
+                }
+
+                await upsertUserMapping({
+                    clickupUserId,
+                    clickupName: clickupUser.name,
+
+                    discordUserId,
+                    discordName: discordMember.displayName,
+
+                    mappedBy: itx.user.id,
+                    mappedAt: new Date().toISOString(),
+                });
+
+                await itx.editReply(
+                    `✅ Mapped **${clickupUser.name}** → <@${discordUserId}> แล้ว`,
+                );
+
+                return;
+            }
+
+            // ===== unmap-user =====
+            if (sub === "unmap-user") {
+                await itx.deferReply({ flags: MessageFlags.Ephemeral });
+
+                const clickupUserId = itx.options.getString("clickup_user", true);
+
+                const ok = await removeUserMappingByClickUpId(clickupUserId);
+
+                await itx.editReply(
+                    ok
+                        ? "✅ ลบ user mapping แล้ว"
+                        : "❌ ไม่พบ mapping ของ user นี้",
+                );
+
+                return;
+            }
+
+            // ===== user-maps =====
+            if (sub === "user-maps") {
+                await itx.deferReply({ flags: MessageFlags.Ephemeral });
+
+                const mappings = await getUserMappings();
+
+                if (!mappings.length) {
+                    await itx.editReply("ยังไม่มี user mapping");
+                    return;
+                }
+
+                const text = mappings
+                    .map((mapping, index) => {
+                        return `${index + 1}. **${mapping.clickupName}** → <@${mapping.discordUserId}>`;
+                    })
+                    .join("\n");
+
+                await itx.editReply(text);
+                return;
+            }
+
+
         } catch (error) {
             console.error("interaction error:", error);
 
@@ -266,19 +471,22 @@ export function registerInteractionHandlers(client: Client): void {
 }
 
 function splitDiscordMessage(content: string, limit = 1900): string[] {
-    if (content.length <= limit) return [content];
+    const cleanupMarkers = ["<!-- SG_SUMMARY -->", "<!-- SG_TASK_NOTIFY -->"];
+    const marker = cleanupMarkers.find((item) => content.includes(item));
+    const markerSuffix = marker ? `\n\n${marker}` : "";
+    const chunkLimit = limit - markerSuffix.length;
+    let remaining = marker ? content.replace(marker, "").trim() : content;
 
     const chunks: string[] = [];
-    let remaining = content;
 
-    while (remaining.length > limit) {
-        let splitIndex = remaining.lastIndexOf("\n", limit);
-        if (splitIndex <= 0) splitIndex = limit;
+    while (remaining.length > chunkLimit) {
+        let splitIndex = remaining.lastIndexOf("\n", chunkLimit);
+        if (splitIndex <= 0) splitIndex = chunkLimit;
 
-        chunks.push(remaining.slice(0, splitIndex).trim());
+        chunks.push(`${remaining.slice(0, splitIndex).trim()}${markerSuffix}`);
         remaining = remaining.slice(splitIndex).trim();
     }
 
-    if (remaining.length) chunks.push(remaining);
+    if (remaining.length) chunks.push(`${remaining}${markerSuffix}`);
     return chunks;
 }

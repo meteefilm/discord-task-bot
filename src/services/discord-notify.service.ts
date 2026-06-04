@@ -9,26 +9,29 @@ import type { ClickUpProjectLink } from "../types/project-link.type.js";
 type SendableChannel = TextChannel | NewsChannel | ThreadChannel;
 
 const DISCORD_MESSAGE_LIMIT = 1900;
+const CLEANUP_MARKERS = ["<!-- SG_SUMMARY -->", "<!-- SG_TASK_NOTIFY -->"];
 
 function splitDiscordMessage(content: string): string[] {
-    if (content.length <= DISCORD_MESSAGE_LIMIT) return [content];
+    const marker = CLEANUP_MARKERS.find((item) => content.includes(item));
+    const markerSuffix = marker ? `\n\n${marker}` : "";
+    const limit = DISCORD_MESSAGE_LIMIT - markerSuffix.length;
+    let remaining = marker ? content.replace(marker, "").trim() : content;
 
     const chunks: string[] = [];
-    let remaining = content;
 
-    while (remaining.length > DISCORD_MESSAGE_LIMIT) {
-        let splitIndex = remaining.lastIndexOf("\n", DISCORD_MESSAGE_LIMIT);
+    while (remaining.length > limit) {
+        let splitIndex = remaining.lastIndexOf("\n", limit);
 
         if (splitIndex <= 0) {
-            splitIndex = DISCORD_MESSAGE_LIMIT;
+            splitIndex = limit;
         }
 
-        chunks.push(remaining.slice(0, splitIndex).trim());
+        chunks.push(`${remaining.slice(0, splitIndex).trim()}${markerSuffix}`);
         remaining = remaining.slice(splitIndex).trim();
     }
 
     if (remaining.length) {
-        chunks.push(remaining);
+        chunks.push(`${remaining}${markerSuffix}`);
     }
 
     return chunks;

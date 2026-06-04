@@ -24,6 +24,14 @@ export function startDailyTaskSummaryJob(client: Client): void {
                         tasks,
                     });
 
+                    if (!message) {
+                        console.log("[DailySummary] skipped empty summary:", {
+                            clickupId: link.clickupId,
+                            clickupName: link.clickupName,
+                        });
+                        continue;
+                    }
+
                     await sendMessageToProjectLink(client, link, message);
                 } catch (error) {
                     console.error("[DailySummary] failed:", link, error);

@@ -5,6 +5,7 @@ import { registerCommands } from "./bot/commands.js";
 import { registerInteractionHandlers } from "./bot/handlers.js";
 import clickupWebhookRoute from "./routes/clickup-webhook.route.js";
 import { startDailyTaskSummaryJob } from "./jobs/daily-task-summary.job.js";
+import { startCleanupBotMessagesJob } from "./jobs/cleanup-bot-messages.job.js";
 
 const PORT = Number(process.env.PORT || 8322);
 
@@ -34,6 +35,7 @@ client.once("ready", async () => {
 
     await registerCommands(client);
     startDailyTaskSummaryJob(client);
+    startCleanupBotMessagesJob(client);
 });
 
 registerInteractionHandlers(client);

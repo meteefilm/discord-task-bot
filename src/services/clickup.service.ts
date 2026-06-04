@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { ClickUpTask } from "../types/clickup.type.js";
+import type { ClickUpTask, ClickUpUserOption } from "../types/clickup.type.js";
 
 const CLICKUP_TOKEN = process.env.CLICKUP_TOKEN;
 
@@ -169,4 +169,37 @@ export async function resolveClickUpListName(
     if (!folder || !list) return listId;
 
     return `${folder.name} / ${list.name}`;
+}
+
+export async function getClickUpUsers(): Promise<ClickUpUserOption[]> {
+    const teamId = process.env.CLICKUP_TEAM_ID;
+
+    if (!teamId) {
+        throw new Error("Missing CLICKUP_TEAM_ID");
+    }
+
+    const response = await clickupApi.get(`/team/${teamId}`);
+
+    const members = response.data.members ?? [];
+    console.log('members :', members);
+
+    return members
+        .map((member: any) => {
+            const user = member.user ?? member;
+
+            return {
+                id: String(user.id),
+                name: String(user.username || user.email || user.id),
+                email: user.email ? String(user.email) : undefined,
+            };
+        })
+        .filter((user: ClickUpUserOption) => user.id && user.name);
+}
+
+export async function getClickUpUserById(
+    userId: string,
+): Promise<ClickUpUserOption | null> {
+    const users = await getClickUpUsers();
+
+    return users.find((user) => user.id === String(userId)) ?? null;
 }

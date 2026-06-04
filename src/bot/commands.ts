@@ -52,6 +52,86 @@ export const commands = [
                 description: "Send ClickUp task summary now",
                 options: [],
             },
+            {
+                type: 1,
+                name: "cleanup",
+                description: "Delete old SG bot summary/notification messages",
+                options: [
+                    {
+                        type: 3,
+                        name: "scope",
+                        description: "Cleanup target",
+                        required: false,
+                        choices: [
+                            {
+                                name: "Current channel/thread",
+                                value: "current",
+                            },
+                            {
+                                name: "All linked channels/threads",
+                                value: "all",
+                            },
+                        ],
+                    },
+                    {
+                        type: 3,
+                        name: "mode",
+                        description: "What to delete",
+                        required: false,
+                        choices: [
+                            {
+                                name: "Old cleanup markers only",
+                                value: "old-markers",
+                            },
+                            {
+                                name: "All messages from this bot",
+                                value: "all-bot-messages",
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                type: 1,
+                name: "map-user",
+                description: "Map ClickUp user with Discord user",
+                options: [
+                    {
+                        type: 3,
+                        name: "clickup_user",
+                        description: "ClickUp User",
+                        required: true,
+                        autocomplete: true,
+                    },
+                    {
+                        type: 3,
+                        name: "discord_user",
+                        description: "Discord User",
+                        required: true,
+                        autocomplete: true,
+                    },
+                ],
+            },
+            {
+                type: 1,
+                name: "unmap-user",
+                description: "Remove ClickUp user mapping",
+                options: [
+                    {
+                        type: 3,
+                        name: "clickup_user",
+                        description: "Mapped ClickUp User",
+                        required: true,
+                        autocomplete: true,
+                    },
+                ],
+            },
+            {
+                type: 1,
+                name: "user-maps",
+                description: "Show ClickUp ↔ Discord user mappings",
+                options: [],
+            },
         ],
     },
 ];

@@ -10,11 +10,11 @@ function isOpenTask(task: ClickUpTask): boolean {
 export function buildTaskSummaryMessage(params: {
     title: string;
     tasks: ClickUpTask[];
-}): string {
+}): string | null {
     const openTasks = params.tasks.filter(isOpenTask);
 
     if (!openTasks.length) {
-        return `📋 **Daily ClickUp Summary: ${params.title}**\n\nไม่มี task ที่ค้างอยู่ครับ ✅`;
+        return null;
     }
 
     const lines = openTasks.slice(0, 30).map((task, index) => {
@@ -39,7 +39,7 @@ export function buildTaskSummaryMessage(params: {
 
     return `📋 **Daily ClickUp Summary: ${params.title}**\n\n${lines.join(
         "\n\n",
-    )}${more}`;
+    )}${more}\n\n<!-- SG_SUMMARY -->`;
 }
 
 export function formatAssignees(task: ClickUpTask): string {
