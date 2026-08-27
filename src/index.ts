@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import { client } from "./bot/client.js";
-import { registerCommands } from "./bot/commands.js";
+import { registerCommands, registerGuildCommandSync } from "./bot/commands.js";
 import { registerInteractionHandlers } from "./bot/handlers.js";
 import clickupWebhookRoute from "./routes/clickup-webhook.route.js";
 import { startDailyTaskSummaryJob } from "./jobs/daily-task-summary.job.js";
@@ -39,5 +39,6 @@ client.once("ready", async () => {
 });
 
 registerInteractionHandlers(client);
+registerGuildCommandSync(client);
 
 await client.login(process.env.DISCORD_TOKEN);

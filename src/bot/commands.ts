@@ -141,9 +141,21 @@ export async function registerCommands(client: Client): Promise<void> {
     await client.guilds.fetch();
 
     const guilds = [...client.guilds.cache.values()];
+    console.log(`Registering commands to ${guilds.length} guild(s)`);
 
     for (const guild of guilds) {
         await guild.commands.set(commands);
         console.log(`Registered commands to ${guild.name} (${guild.id})`);
     }
+}
+
+export function registerGuildCommandSync(client: Client): void {
+    client.on("guildCreate", async (guild) => {
+        try {
+            await guild.commands.set(commands);
+            console.log(`Registered commands to new guild ${guild.name} (${guild.id})`);
+        } catch (error) {
+            console.error(`Failed to register commands to new guild ${guild.name} (${guild.id})`, error);
+        }
+    });
 }
